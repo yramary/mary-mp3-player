@@ -40,12 +40,24 @@ public class DBWork {
 					"	FOREIGN KEY(`album_fk`) REFERENCES `albums`(`id`),\n" + 
 					"	FOREIGN KEY(`artist_fk`) REFERENCES `artists`(`id`)\n" + 
 					");";
+			String createTrigger = "CREATE TRIGGER IF NOT EXISTS del_album_and_artist AFTER DELETE\r\n" + 
+			          "ON tracks\r\n" + 
+			          "BEGIN\r\n" + 
+			          "  DELETE FROM albums \r\n" + 
+			          "  WHERE albums.id NOT IN \r\n" + 
+			          "  (SELECT albums.id FROM ALBUMS \r\n" + 
+			          "  INNER JOIN tracks ON tracks.album_fk = albums.id);\r\n" + 
+			          "  DELETE FROM artists \r\n" + 
+			          "  WHERE artists.id NOT IN \r\n" + 
+			          "  (SELECT artists.id FROM artists \r\n" + 
+			          "  INNER JOIN tracks ON tracks.album_fk = artists.id);\r\n" + 
+			          "END;";
 			
 			Statement stmt = conn.createStatement();
 			stmt.addBatch(createAlbumsTable);
 			stmt.addBatch(createArtistsTable);
 			stmt.addBatch(createTracksTable);
-			
+			stmt.addBatch(createTrigger);
 			stmt.executeBatch();
 					
 			System.out.println("Connected.");			
